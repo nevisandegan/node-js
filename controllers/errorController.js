@@ -44,7 +44,6 @@ const handleDublicateError = (err) => {
 };
 
 module.exports = (err, req, res, next) => {
-  console.log("--------------------------------------err", err);
   err.status = err.status || "error";
   err.statusCode = err.statusCode || 500;
 

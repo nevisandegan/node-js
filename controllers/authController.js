@@ -90,3 +90,14 @@ exports.restrictTo = (...role) => {
     next();
   };
 };
+
+exports.forgetPassword = async (req, res, next) => {
+  const user = await User.findOne({ email: req.body.email });
+
+  if (!user) {
+    return next(new AppError("there is no user!"));
+  }
+
+  const resetToken = user.createPasswordResetToken();
+  await user.save({ validateBeforeSave: false });
+};
