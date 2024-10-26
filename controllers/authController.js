@@ -2,6 +2,7 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
 const catchAsync = require("../utils/catch-async");
 const AppError = require("../utils/app-error");
+const sendEmail = require("../utils/email");
 const { promisify } = require("util");
 
 exports.singup = catchAsync(async (req, res, next) => {
@@ -100,4 +101,34 @@ exports.forgetPassword = async (req, res, next) => {
 
   const resetToken = user.createPasswordResetToken();
   await user.save({ validateBeforeSave: false });
+
+  const resetUrl = `${req.protocol}://${req.get(
+    "host"
+  )}/api/users/resetPassword/${resetToken}`;
+
+  const message = `remzeto yadet rafte? rosh click kon ${resetUrl}`;
+
+  try {
+    await sendEmail({
+      message,
+      subject: "Reset Password",
+      email: user.email,
+    });
+
+    res.status(200).json({
+      status: "success",
+      message: "Token send to email",
+    });
+  } catch (err) {
+
+    console.log(err)
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+
+    await user.save({ validateBeforeSave: false });
+
+    return next(new AppError("there is some problem to send email", 500));
+  }
 };
+
+exports.resetPassword = (req, res, next) => {};
