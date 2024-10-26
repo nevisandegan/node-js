@@ -1,0 +1,78 @@
+# Node.js dependencies
+node_modules/
+npm-debug.log
+yarn-error.log
+.env
+
+# macOS
+.DS_Store
+
+# Logs
+logs
+*.log
+yarn-debug.log*
+yarn-error.log*
+
+# OS generated files
+Thumbs.db
+.DS_Store
+
+# Editor directories and files
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+
+# Build files
+dist/
+build/
+
+# Temporary files
+*.tmp
+*.swp
+*.lock
+*.pid
+*.seed
+*.pid.lock
+
+# TypeScript
+*.tsbuildinfo
+
+# Coverage files
+coverage/
+.nyc_output/
+
+# Optional npm cache directory
+.npm
+
+# Yarn Integrity file
+.yarn-integrity
+
+# Parcel-bundler cache (https://parceljs.org/)
+.cache/
+
+# dotenv environment variables file
+.env.test
+.env.production
+
+# Jest cache directory
+jest/
+
+# TypeScript declaration files
+*.d.ts
+
+# .next folder (for Next.js)
+.next/
+out/
+
+# Netlify files
+.netlify/
+
+# GitHub workflow files
+.github/
+
+# Storybook files
+.storybook/
+
+# Temporary files and folders
+*.tmp
