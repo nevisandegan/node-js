@@ -4,6 +4,7 @@ const catchAsync = require("../utils/catch-async");
 const AppError = require("../utils/app-error");
 const sendEmail = require("../utils/email");
 const { promisify } = require("util");
+const crypto = require("crypto");
 
 exports.singup = catchAsync(async (req, res, next) => {
   const newUser = await User.create({
@@ -120,8 +121,7 @@ exports.forgetPassword = async (req, res, next) => {
       message: "Token send to email",
     });
   } catch (err) {
-
-    console.log(err)
+    console.log(err);
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
 
@@ -131,4 +131,32 @@ exports.forgetPassword = async (req, res, next) => {
   }
 };
 
-exports.resetPassword = (req, res, next) => {};
+exports.resetPassword = async (req, res, next) => {
+  const hashToken = crypto
+    .createHash("sha256")
+    .update(req.params.token)
+    .digest("hex");
+
+  const user = await User.findOne({
+    passwordResetToken: hashToken,
+    passwordResetExpires: { $gt: Date.now() },
+  });
+  if (!user) return next(new AppError("there is no able", 400));
+
+  user.password = req.body.password;
+  user.passwordConfirm = req.body.passwordConfirm;
+
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+
+  await user.save();
+
+  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN,
+  });
+
+  res.status(201).json({
+    status: "success",
+    token,
+  });
+};
