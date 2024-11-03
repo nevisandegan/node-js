@@ -6,6 +6,15 @@ const sendEmail = require("../utils/email");
 const { promisify } = require("util");
 const crypto = require("crypto");
 
+const filterObj = (obj, ...allowUpdate) => {
+  const newObj = {};
+  Object.keys(obj).forEach((el) => {
+    if (allowUpdate.includes(el)) newObj[el] = obj[el];
+  });
+
+  return newObj;
+};
+
 exports.singup = catchAsync(async (req, res, next) => {
   const newUser = await User.create({
     name: req.body.name,
@@ -94,6 +103,15 @@ exports.restrictTo = (...role) => {
   };
 };
 
+exports.getUsers = async (req, res, next) => {
+  const users = await User.find();
+
+  res.status(200).json({
+    status: "success",
+    data: users,
+  });
+};
+
 exports.forgetPassword = async (req, res, next) => {
   const user = await User.findOne({ email: req.body.email });
 
@@ -130,6 +148,20 @@ exports.forgetPassword = async (req, res, next) => {
 
     return next(new AppError("there is some problem to send email", 500));
   }
+};
+
+exports.updateMe = async (req, res, next) => {
+  const filterBody = filterObj(req.body, "name");
+
+  const updateUser = await User.findByIdAndUpdate(req.user.id, filterBody, {
+    new: true,
+    runValidators: true,
+  });
+
+  res.status(200).json({
+    status: "success",
+    user: updateUser,
+  });
 };
 
 exports.resetPassword = async (req, res, next) => {
@@ -181,5 +213,14 @@ exports.updatePassword = async (req, res, next) => {
   res.status(200).json({
     status: "succes",
     token,
+  });
+};
+
+exports.deleteMe = async (req, res, next) => {
+  await User.findByIdAndUpdate(req.user.id, { active: false });
+
+  res.status(204).json({
+    status: "success",
+    data: null,
   });
 };
