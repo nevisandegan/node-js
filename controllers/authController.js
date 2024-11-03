@@ -35,8 +35,8 @@ exports.login = catchAsync(async (req, res, next) => {
   }
 
   const user = await User.findOne({ email }).select("+password");
-  const correct = user.correctPassword(password, user.password);
-  if (!user || !correct) {
+
+  if (!user || !(await user.correctPassword(password, user.password))) {
     return next(new AppError("password or email invalid", 401));
   }
 
@@ -52,6 +52,7 @@ exports.login = catchAsync(async (req, res, next) => {
 
 exports.protect = async (req, res, next) => {
   let token;
+
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith("Bearer")
@@ -157,6 +158,28 @@ exports.resetPassword = async (req, res, next) => {
 
   res.status(201).json({
     status: "success",
+    token,
+  });
+};
+
+exports.updatePassword = async (req, res, next) => {
+  const user = await User.findById(req.user.id).select("+password");
+
+  if (!(await user.correctPassword(req.body.passwordCurrent, user.password)))
+    return next(new AppError("wrong passwrod confirm", 404));
+  if (!user) return next(new AppError("there is not user", 404));
+
+  user.password = req.body.password;
+  user.passwordConfirm = req.body.passwordConfirm;
+
+  await user.save();
+
+  const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN,
+  });
+
+  res.status(200).json({
+    status: "succes",
     token,
   });
 };
